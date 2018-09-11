@@ -103,12 +103,117 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   // Override the current require with this new one
   return newRequire;
-})({"src/game.ts":[function(require,module,exports) {
+})({"src/Game.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var CELL_SIZE = 20;
-var hsl = function hsl(h, s, l) {
+exports.CELL_SIZE = 20;
+var Direction;
+(function (Direction) {
+    Direction[Direction["Up"] = 38] = "Up";
+    Direction[Direction["Down"] = 40] = "Down";
+    Direction[Direction["Left"] = 37] = "Left";
+    Direction[Direction["Right"] = 39] = "Right";
+})(Direction = exports.Direction || (exports.Direction = {}));
+var Game = /** @class */function () {
+    function Game(ctx) {
+        this.cellSize = exports.CELL_SIZE;
+        this.ctx = ctx;
+    }
+    Object.defineProperty(Game.prototype, "width", {
+        get: function get() {
+            return this.ctx.canvas.width;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Game.prototype, "height", {
+        get: function get() {
+            return this.ctx.canvas.height;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Game.prototype, "rows", {
+        get: function get() {
+            return this.height / this.cellSize;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Game.prototype, "cols", {
+        get: function get() {
+            return this.width / this.cellSize;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Game.prototype, "totalCels", {
+        get: function get() {
+            return this.rows * this.cols;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Game.prototype, "constraints", {
+        get: function get() {
+            return {
+                x: this.cellSize,
+                y: this.cellSize,
+                width: this.width - this.cellSize,
+                height: this.height - this.cellSize
+            };
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Game.prototype.calculateGridPosition = function (blockNumber) {
+        var _a = this,
+            cols = _a.cols,
+            rows = _a.rows;
+        var col = blockNumber % rows;
+        var row = blockNumber === 0 ? 0 : rows / (blockNumber - col);
+        var position = {
+            col: col,
+            row: row,
+            blockNumber: blockNumber,
+            cols: cols,
+            rows: rows
+        };
+        return position;
+    };
+    Game.prototype.calculatePosition = function (blockNumber) {
+        blockNumber = parseInt(blockNumber.toString());
+        var constraints = this.constraints;
+        var _a = this.calculateGridPosition(blockNumber),
+            col = _a.col,
+            row = _a.row;
+        return {
+            x: col * this.cellSize,
+            y: row * this.cellSize,
+            width: this.cellSize,
+            height: this.cellSize
+        };
+    };
+    return Game;
+}();
+exports.Game = Game;
+},{}],"src/Figure.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var Figure = /** @class */function () {
+    function Figure() {
+        this.body = [];
+    }
+    return Figure;
+}();
+exports.Figure = Figure;
+},{}],"src/utils.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.hsl = function (h, s, l) {
     if (h === void 0) {
         h = 0;
     }
@@ -120,95 +225,146 @@ var hsl = function hsl(h, s, l) {
     }
     return "hsl(" + h + ", " + s + "%, " + l + "%)";
 };
-var Direction;
-(function (Direction) {
-    Direction[Direction["Up"] = 38] = "Up";
-    Direction[Direction["Down"] = 40] = "Down";
-    Direction[Direction["Left"] = 37] = "Left";
-    Direction[Direction["Right"] = 39] = "Right";
-})(Direction || (Direction = {}));
-var Snake = /** @class */function () {
-    function Snake() {
-        this.x = 0;
-        this.y = 0;
-        this.speedX = 0;
-        this.speedY = 0;
-        this.color = hsl(163, 50, 49);
+},{}],"src/Snake.ts":[function(require,module,exports) {
+"use strict";
+
+var __extends = this && this.__extends || function () {
+    var _extendStatics = function extendStatics(d, b) {
+        _extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+            d.__proto__ = b;
+        } || function (d, b) {
+            for (var p in b) {
+                if (b.hasOwnProperty(p)) d[p] = b[p];
+            }
+        };
+        return _extendStatics(d, b);
+    };
+    return function (d, b) {
+        _extendStatics(d, b);
+        function __() {
+            this.constructor = d;
+        }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+}();
+Object.defineProperty(exports, "__esModule", { value: true });
+var Figure_1 = require("./Figure");
+var Game_1 = require("./Game");
+var utils_1 = require("./utils");
+var Snake = /** @class */function (_super) {
+    __extends(Snake, _super);
+    function Snake(game) {
+        var _this = _super.call(this) || this;
+        _this.speedX = 0;
+        _this.speedY = 0;
+        _this.color = utils_1.hsl(163, 50, 49);
+        _this.speed = 0.0001;
+        _this.game = game;
+        return _this;
     }
     Snake.prototype.update = function () {
-        this.x = this.x + this.speedX * CELL_SIZE;
-        this.y = this.y + this.speedY * CELL_SIZE;
+        var _this = this;
+        this.body = this.body.map(function (currentBlock) {
+            return currentBlock + currentBlock * _this.speedX + currentBlock * _this.speedY * _this.game.rows;
+        });
     };
-    Snake.prototype.dir = function (direction) {
-        if (direction === Direction.Down) {
+    Snake.prototype.changeDirection = function (direction) {
+        if (direction === Game_1.Direction.Down) {
             this.speedX = 0;
-            this.speedY = 0.1;
+            this.speedY = this.speed;
         }
-        if (direction === Direction.Up) {
+        if (direction === Game_1.Direction.Up) {
             this.speedX = 0;
-            this.speedY = -0.1;
+            this.speedY = -this.speed;
         }
-        if (direction === Direction.Left) {
-            this.speedX = -0.1;
+        if (direction === Game_1.Direction.Left) {
+            this.speedX = -this.speed;
             this.speedY = 0;
         }
-        if (direction === Direction.Right) {
-            this.speedX = 0.1;
+        if (direction === Game_1.Direction.Right) {
+            this.speedX = this.speed;
             this.speedY = 0;
         }
     };
     return Snake;
-}();
+}(Figure_1.Figure);
 exports.Snake = Snake;
-exports.createCanvas = function () {
-    return document.getElementById('game');
-};
-var clearCanvas = function clearCanvas(ctx) {
-    return ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-};
-var drawBackground = function drawBackground(ctx) {
-    ctx.fillStyle = 'hsl(192, 45%, 2%)';
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-};
-var drawWalls = function drawWalls(ctx) {
-    ctx.fillStyle = 'hsl(112, 50%, 63%)';
-    var _a = ctx.canvas,
-        width = _a.width,
-        height = _a.height;
-    ctx.fillRect(0, 0, CELL_SIZE, height);
-    ctx.fillRect(0, 0, width, CELL_SIZE);
-    ctx.fillRect(width - CELL_SIZE, 0, CELL_SIZE, height);
-    ctx.fillRect(0, height - CELL_SIZE, width, CELL_SIZE);
-};
-var drawSnake = function drawSnake(ctx, snake) {
-    var x = snake.x,
-        y = snake.y;
-    ctx.fillStyle = snake.color;
-    ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
-};
-var player = new Snake();
-var ctx = exports.createCanvas().getContext('2d');
-document.addEventListener('keydown', function (event) {
-    return player.dir(event.keyCode);
-});
-exports.render = function () {
-    player.update();
-    clearCanvas(ctx);
-    drawBackground(ctx);
-    drawWalls(ctx);
-    drawSnake(ctx, player);
-};
-},{}],"src/entry.ts":[function(require,module,exports) {
+},{"./Figure":"src/Figure.ts","./Game":"src/Game.ts","./utils":"src/utils.ts"}],"src/drawers.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var game_1 = require("./game");
-var renderLoop = function renderLoop() {
-    game_1.render();
-    window.requestAnimationFrame(renderLoop);
+var utils_1 = require("./utils");
+exports.clearCanvas = function (game) {
+    return game.ctx.clearRect(0, 0, game.width, game.height);
 };
-renderLoop();
-},{"./game":"src/game.ts"}],"../../.nvm/versions/node/v10.8.0/lib/node_modules/parcel/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+exports.drawBackground = function (game) {
+    var ctx = game.ctx;
+    ctx.fillStyle = utils_1.hsl(192, 45, 2);
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+};
+exports.drawWalls = function (game) {
+    var ctx = game.ctx,
+        width = game.width,
+        height = game.height;
+    ctx.fillStyle = utils_1.hsl(112, 50, 63);
+    ctx.fillRect(0, 0, game.cellSize, height);
+    ctx.fillRect(0, 0, width, game.cellSize);
+    ctx.fillRect(width - game.cellSize, 0, game.cellSize, height);
+    ctx.fillRect(0, height - game.cellSize, width, game.cellSize);
+};
+exports.drawGameBlock = function (ctx, block, color) {
+    if (color === void 0) {
+        color = '#000';
+    }
+    ctx.fillStyle = color;
+    ctx.fillRect(block.x, block.y, block.width, block.height);
+};
+exports.drawSnake = function (game, snake) {
+    var ctx = game.ctx;
+    var _a = snake.body,
+        body = _a === void 0 ? [] : _a;
+    ctx.fillStyle = snake.color;
+    for (var _i = 0, body_1 = body; _i < body_1.length; _i++) {
+        var chunkCellNumber = body_1[_i];
+        var bodyBlock = game.calculatePosition(chunkCellNumber);
+        exports.drawGameBlock(game.ctx, bodyBlock, snake.color);
+    }
+};
+},{"./utils":"src/utils.ts"}],"src/main.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var Game_1 = require("./Game");
+var Snake_1 = require("./Snake");
+var drawers_1 = require("./drawers");
+exports.createCanvas = function () {
+    return document.getElementById('game');
+};
+var calculateCollision = function calculateCollision() {};
+var ctx = exports.createCanvas().getContext('2d');
+// Setup
+var game = new Game_1.Game(ctx);
+var player = new Snake_1.Snake(game);
+document.addEventListener('keydown', function (event) {
+    return player.changeDirection(event.keyCode);
+});
+var render = function render() {
+    player.update();
+    drawers_1.clearCanvas(game);
+    drawers_1.drawBackground(game);
+    drawers_1.drawWalls(game);
+    drawers_1.drawSnake(game, player);
+};
+exports.loop = function () {
+    return render() && window.requestAnimationFrame(exports.loop);
+};
+},{"./Game":"src/Game.ts","./Snake":"src/Snake.ts","./drawers":"src/drawers.ts"}],"src/entry.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var main_1 = require("./main");
+main_1.loop();
+},{"./main":"src/main.ts"}],"../../.nvm/versions/node/v10.8.0/lib/node_modules/parcel/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 

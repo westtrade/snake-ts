@@ -1,8 +1,2 @@
-import { render } from './game'
-
-const renderLoop = () => {
-	render()
-	window.requestAnimationFrame(renderLoop)
-}
-
-renderLoop()
+import { loop } from './main'
+loop()
