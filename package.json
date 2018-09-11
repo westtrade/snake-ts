@@ -7,7 +7,7 @@
 		"typescript": "^3.0.3"
 	},
 	"scripts": {
-		"build": "parcel build ./index.html",
-		"develop": "parcel ./index.html --open"
+		"build": "parcel build ./index.html -d ./docs",
+		"develop": "parcel ./index.html --open -d ./docs"
 	}
 }

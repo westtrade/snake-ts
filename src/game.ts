@@ -1,4 +1,4 @@
-const CELL_SIZE = 20
+const CELL_SIZE: number = 20
 
 const hsl = (h: number = 0, s: number = 0, l: number = 0): string =>
 	`hsl(${h}, ${s}%, ${l}%)`
@@ -98,13 +98,4 @@ export const render = (): void => {
 	drawWalls(ctx)
 
 	drawSnake(ctx, player)
-
-	const game: Game = {
-		height: 600,
-		width: 600
-	}
-
-	const renderContext: RenderContext = {
-		game
-	}
 }

@@ -103,13 +103,112 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   // Override the current require with this new one
   return newRequire;
-})({"src/entry.js":[function(require,module,exports) {
-// @flow
+})({"src/game.ts":[function(require,module,exports) {
+"use strict";
 
-var makeCanvas = function makeCanvas() {
-  return document.getElementById('game');
+Object.defineProperty(exports, "__esModule", { value: true });
+var CELL_SIZE = 20;
+var hsl = function hsl(h, s, l) {
+    if (h === void 0) {
+        h = 0;
+    }
+    if (s === void 0) {
+        s = 0;
+    }
+    if (l === void 0) {
+        l = 0;
+    }
+    return "hsl(" + h + ", " + s + "%, " + l + "%)";
 };
-},{}],"../../.nvm/versions/node/v10.8.0/lib/node_modules/parcel/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+var Direction;
+(function (Direction) {
+    Direction[Direction["Up"] = 38] = "Up";
+    Direction[Direction["Down"] = 40] = "Down";
+    Direction[Direction["Left"] = 37] = "Left";
+    Direction[Direction["Right"] = 39] = "Right";
+})(Direction || (Direction = {}));
+var Snake = /** @class */function () {
+    function Snake() {
+        this.x = 0;
+        this.y = 0;
+        this.speedX = 0;
+        this.speedY = 0;
+        this.color = hsl(163, 50, 49);
+    }
+    Snake.prototype.update = function () {
+        this.x = this.x + this.speedX * CELL_SIZE;
+        this.y = this.y + this.speedY * CELL_SIZE;
+    };
+    Snake.prototype.dir = function (direction) {
+        if (direction === Direction.Down) {
+            this.speedX = 0;
+            this.speedY = 0.1;
+        }
+        if (direction === Direction.Up) {
+            this.speedX = 0;
+            this.speedY = -0.1;
+        }
+        if (direction === Direction.Left) {
+            this.speedX = -0.1;
+            this.speedY = 0;
+        }
+        if (direction === Direction.Right) {
+            this.speedX = 0.1;
+            this.speedY = 0;
+        }
+    };
+    return Snake;
+}();
+exports.Snake = Snake;
+exports.createCanvas = function () {
+    return document.getElementById('game');
+};
+var clearCanvas = function clearCanvas(ctx) {
+    return ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+};
+var drawBackground = function drawBackground(ctx) {
+    ctx.fillStyle = 'hsl(192, 45%, 2%)';
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+};
+var drawWalls = function drawWalls(ctx) {
+    ctx.fillStyle = 'hsl(112, 50%, 63%)';
+    var _a = ctx.canvas,
+        width = _a.width,
+        height = _a.height;
+    ctx.fillRect(0, 0, CELL_SIZE, height);
+    ctx.fillRect(0, 0, width, CELL_SIZE);
+    ctx.fillRect(width - CELL_SIZE, 0, CELL_SIZE, height);
+    ctx.fillRect(0, height - CELL_SIZE, width, CELL_SIZE);
+};
+var drawSnake = function drawSnake(ctx, snake) {
+    var x = snake.x,
+        y = snake.y;
+    ctx.fillStyle = snake.color;
+    ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+};
+var player = new Snake();
+var ctx = exports.createCanvas().getContext('2d');
+document.addEventListener('keydown', function (event) {
+    return player.dir(event.keyCode);
+});
+exports.render = function () {
+    player.update();
+    clearCanvas(ctx);
+    drawBackground(ctx);
+    drawWalls(ctx);
+    drawSnake(ctx, player);
+};
+},{}],"src/entry.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var game_1 = require("./game");
+var renderLoop = function renderLoop() {
+    game_1.render();
+    window.requestAnimationFrame(renderLoop);
+};
+renderLoop();
+},{"./game":"src/game.ts"}],"../../.nvm/versions/node/v10.8.0/lib/node_modules/parcel/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 
@@ -138,7 +237,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '44023' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '39721' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
@@ -279,5 +378,5 @@ function hmrAccept(bundle, id) {
     return hmrAccept(global.parcelRequire, id);
   });
 }
-},{}]},{},["../../.nvm/versions/node/v10.8.0/lib/node_modules/parcel/src/builtins/hmr-runtime.js","src/entry.js"], null)
-//# sourceMappingURL=/entry.b1654978.map
+},{}]},{},["../../.nvm/versions/node/v10.8.0/lib/node_modules/parcel/src/builtins/hmr-runtime.js","src/entry.ts"], null)
+//# sourceMappingURL=/entry.bfd46455.map
